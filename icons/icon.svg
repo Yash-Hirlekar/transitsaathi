@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#881337"/>
+      <stop offset="60%" stop-color="#4C0519"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+    <linearGradient id="trainFront" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="108" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle railway track grid lines in background -->
+  <path d="M64 420 L448 420" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="6"/>
+  <path d="M110 448 L402 448" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="4"/>
+  <path d="M120 400 L90 460" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="4"/>
+  <path d="M200 400 L180 460" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="4"/>
+  <path d="M280 400 L280 460" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="4"/>
+  <path d="M360 400 L380 460" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="4"/>
+
+  <!-- Train body container -->
+  <g filter="url(#shadow)">
+    <!-- Main Train cab silhouette -->
+    <path d="M140 148 C140 108 180 84 256 84 C332 84 372 108 372 148 L372 320 C372 344 354 360 328 360 L184 360 C158 360 140 344 140 320 Z" fill="url(#trainFront)"/>
+    
+    <!-- Windshield glass -->
+    <path d="M162 144 C162 120 190 108 256 108 C322 108 350 120 350 144 L350 200 C350 208 344 214 336 214 L176 214 C168 214 162 208 162 200 Z" fill="#0F172A"/>
+    
+    <!-- Windshield center pillar -->
+    <rect x="252" y="108" width="8" height="106" fill="#E2E8F0"/>
+    
+    <!-- Destination board display (Classic Mumbai Local yellow LED header) -->
+    <rect x="186" y="118" width="140" height="26" rx="4" fill="#020617"/>
+    <text x="256" y="136" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" fill="#F59E0B" text-anchor="middle" letter-spacing="2">FAST • CSMT</text>
+    
+    <!-- Mumbai Local Red/Yellow safety livery stripes -->
+    <rect x="140" y="240" width="232" height="16" fill="#DC2626"/>
+    <rect x="140" y="258" width="232" height="12" fill="#F59E0B"/>
+    
+    <!-- Dual headlights -->
+    <circle cx="180" cy="308" r="16" fill="#FEF08A"/>
+    <circle cx="180" cy="308" r="22" stroke="#CBD5E1" stroke-width="3" fill="none"/>
+    
+    <circle cx="332" cy="308" r="16" fill="#FEF08A"/>
+    <circle cx="332" cy="308" r="22" stroke="#CBD5E1" stroke-width="3" fill="none"/>
+    
+    <!-- Center Train Crest / Badge: "TS" monogram -->
+    <circle cx="256" cy="308" r="20" fill="#991B1B"/>
+    <text x="256" y="315" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="900" fill="#FFFFFF" text-anchor="middle">TS</text>
+    
+    <!-- Cowcatcher / Buffer bar -->
+    <path d="M168 360 L156 392 L356 392 L344 360 Z" fill="#334155"/>
+    <rect x="200" y="380" width="112" height="6" fill="#64748B" rx="3"/>
+  </g>
+
+  <!-- High-contrast indicator beacon top -->
+  <circle cx="256" cy="80" r="8" fill="#F59E0B"/>
+</svg>

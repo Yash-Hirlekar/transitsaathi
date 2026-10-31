@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Transit Saathi - Your Mumbai Local Companion</title>
+  
+  <meta name="description" content="Transit Saathi is your commuter-first companion exclusively for Mumbai suburban local trains: fast/slow timetables, live routes, platforms, and schematic map.">
+  <meta name="theme-color" content="#881337">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Transit Saathi">
+
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+  <div class="app-shell" id="appShell">
+    
+    <!-- TOP HEADER -->
+    <header class="app-header">
+      <div class="brand-wrapper" id="brandHeaderBtn" role="button" tabindex="0">
+        <img src="icons/icon.svg" alt="Transit Saathi Logo" class="brand-icon">
+        <div class="brand-text">
+          <h1>Transit Saathi</h1>
+          <div class="brand-tagline">Your Mumbai Local Companion</div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="live-clock-badge" id="liveClockDisplay" title="Current Mumbai Local Time">
+          <span class="live-pulse-dot"></span>
+          <span id="clockTime">--:-- --</span>
+        </div>
+        <button class="icon-btn" id="headerInfoBtn" aria-label="Settings and Information">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Offline notification strip -->
+    <div class="offline-banner" id="offlineBanner" style="display: none;">
+      <span>⚡ Offline Mode: Complete Timetable & Map Available</span>
+    </div>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="main-content" id="mainContainer">
+
+      <!-- ================= 1. HOME VIEW ================= -->
+      <section class="view-panel active" id="homeView">
+        <div class="home-container">
+
+          <!-- Primary Journey Search Card -->
+          <div class="search-card">
+            
+            <!-- FROM Station Selector -->
+            <div class="station-input-row">
+              <div class="station-input-box" id="fromStationBtn" role="button" tabindex="0">
+                <div class="station-label-tag from-tag">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                  FROM
+                </div>
+                <div class="station-name-display" id="fromStationName">Kurla</div>
+              </div>
+            </div>
+
+            <!-- Swap Button -->
+            <div class="swap-btn-container">
+              <button class="swap-btn" id="swapStationsBtn" aria-label="Swap From and To stations">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <polyline points="17 14 12 9 7 14"></polyline>
+                </svg>
+              </button>
+            </div>
+
+            <!-- TO Station Selector -->
+            <div class="station-input-row">
+              <div class="station-input-box" id="toStationBtn" role="button" tabindex="0">
+                <div class="station-label-tag to-tag">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                  TO
+                </div>
+                <div class="station-name-display" id="toStationName">Dadar</div>
+              </div>
+            </div>
+
+            <!-- Departure Time Quick Filter & Arrive By -->
+            <div class="time-selector-row">
+              <span class="time-label">Timing:</span>
+              <div class="time-btn-group">
+                <button class="time-chip active" data-offset="0">Now</button>
+                <button class="time-chip" data-offset="15">+15m</button>
+                <button class="time-chip" data-offset="30">+30m</button>
+                <button class="time-chip" id="btnArriveByToggle" title="Target arrival time">Arrive By ▾</button>
+              </div>
+            </div>
+
+            <!-- Arrive By Time Input Row (Shown when Arrive By is active) -->
+            <div class="arrive-by-row" id="arriveByRow" style="display: none; margin-top: 8px; margin-bottom: 4px; align-items: center; justify-content: space-between; background: var(--bg-card-subtle); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+              <span style="font-size: 11.5px; color: var(--text-secondary); font-weight: 700;">🎯 TARGET ETA:</span>
+              <input type="time" id="arriveByTimeInput" style="background: var(--bg-app); border: 1px solid var(--border-strong); color: var(--text-primary); padding: 4px 8px; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 13px;" value="09:00">
+            </div>
+
+            <!-- Dominant Action Button -->
+            <button class="btn-find-trains" id="btnFindTrains">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              FIND TRAINS
+            </button>
+          </div>
+
+          <!-- Real-Time Crowd Reporting Card (Section 11, 12, 16) -->
+          <div class="crowd-report-card" id="crowdReportCard">
+            <div class="crowd-report-header">
+              <span class="crowd-report-title">⚡ REPORT LIVE CROWD</span>
+              <span class="crowd-station-badge" id="crowdContextBadge">Kurla · Platform</span>
+            </div>
+            <div class="crowd-btn-group">
+              <button class="crowd-btn btn-crowd-green" data-density="GREEN_SEATS" title="Seats Available">
+                <span class="crowd-btn-dot">🟢</span>
+                <span class="crowd-btn-text">SEATS AVAILABLE</span>
+              </button>
+              <button class="crowd-btn btn-crowd-yellow" data-density="YELLOW_STAND" title="Mostly Standing">
+                <span class="crowd-btn-dot">🟡</span>
+                <span class="crowd-btn-text">MOSTLY STANDING</span>
+              </button>
+              <button class="crowd-btn btn-crowd-red" data-density="RED_CRUSH" title="Crushed">
+                <span class="crowd-btn-dot">🔴</span>
+                <span class="crowd-btn-text">CRUSHED</span>
+              </button>
+            </div>
+            <div id="crowdSyncNotice" style="display: none; font-size: 10.5px; color: var(--brand-accent); margin-top: 6px; text-align: center;">
+              ⚡ Offline Mode: 1 report waiting to sync
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions-section">
+            <div class="section-label">
+              <span>Quick Commuter Actions</span>
+            </div>
+            <div class="quick-actions-grid">
+              
+              <button class="quick-action-btn" id="qaNextTrain">
+                <div class="qa-icon-wrap icon-next">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                </div>
+                <span class="qa-title">Next Train</span>
+              </button>
+
+              <button class="quick-action-btn" id="qaRouteMap">
+                <div class="qa-icon-wrap icon-map">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                  </svg>
+                </div>
+                <span class="qa-title">Route Map</span>
+              </button>
+
+              <button class="quick-action-btn" id="qaFavourites">
+                <div class="qa-icon-wrap icon-fav">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </div>
+                <span class="qa-title">Favourites</span>
+              </button>
+
+              <button class="quick-action-btn" id="qaNearby">
+                <div class="qa-icon-wrap icon-near">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+                <span class="qa-title">Nearby</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Corridor Status Ticker Strip -->
+          <div class="corridor-status-strip">
+            <div class="strip-item" title="Western Line Service Status">
+              <span class="strip-dot dot-green"></span>
+              <span>WR: Normal</span>
+            </div>
+            <div class="strip-item" title="Central Line Service Status">
+              <span class="strip-dot dot-amber"></span>
+              <span>CR: 4-6m Slow</span>
+            </div>
+            <div class="strip-item" title="Harbour Line Service Status">
+              <span class="strip-dot dot-green"></span>
+              <span>HR: Normal</span>
+            </div>
+            <div class="strip-item" title="Trans-Harbour Line Service Status">
+              <span class="strip-dot dot-green"></span>
+              <span>TH: Normal</span>
+            </div>
+          </div>
+
+          <!-- Frequent / Popular Mumbai Commutes -->
+          <div class="quick-commute-section">
+            <div class="section-label">
+              <span>Frequent Commute Routes</span>
+              <span style="font-weight: 500; font-size: 10px;">Tap to query</span>
+            </div>
+            <div class="quick-commute-list" id="popularCommuteList">
+              <!-- Dynamically populated or rendered -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= 2. TRAIN RESULTS VIEW ================= -->
+      <section class="view-panel" id="trainsView">
+        <div class="results-header-bar">
+          <div class="route-summary-row">
+            <button class="results-back-btn" id="resultsBackBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              Back
+            </button>
+            <div class="route-endpoints">
+              <span id="resultsFromTitle">Kurla</span>
+              <span style="color: var(--text-muted); font-size: 13px;">→</span>
+              <span id="resultsToTitle">Dadar</span>
+            </div>
+            <button class="icon-btn" id="resultsSwapBtn" title="Reverse direction">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 10 12 15 17 10"></polyline><polyline points="17 14 12 9 7 14"></polyline></svg>
+            </button>
+          </div>
+
+          <!-- Filters: ALL | FAST | SLOW + Line Filter -->
+          <div class="filter-strip">
+            <div class="filter-group" id="speedFilterGroup">
+              <button class="filter-btn active" data-speed="ALL">ALL</button>
+              <button class="filter-btn" data-speed="FAST">FAST</button>
+              <button class="filter-btn" data-speed="SLOW">SLOW</button>
+            </div>
+            <div class="filter-group" id="lineFilterGroup">
+              <button class="filter-btn active" data-line="ALL">ALL LINES</button>
+              <button class="filter-btn" data-line="central">CENTRAL</button>
+              <button class="filter-btn" data-line="western">WESTERN</button>
+              <button class="filter-btn" data-line="harbour">HARBOUR</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trains-list" id="trainResultsContainer">
+          <!-- Trains injected here by JS -->
+        </div>
+      </section>
+
+      <!-- ================= 3. ROUTE MAP VIEW ================= -->
+      <section class="view-panel" id="mapView">
+        <div class="map-view-container" id="mapContainer">
+          <!-- Schematic SVG Map injected here by js/map.js -->
+        </div>
+      </section>
+
+      <!-- ================= 4. STATION SCREEN (Live Departures) ================= -->
+      <section class="view-panel" id="stationView">
+        <div class="station-header-card">
+          <div class="st-title-row">
+            <div>
+              <div class="st-large-name" id="stationViewName">Kurla</div>
+              <div id="stationViewLines" style="display: flex; gap: 4px; margin-top: 4px;"></div>
+            </div>
+            <button class="st-fav-toggle" id="stationFavToggle" aria-label="Toggle favourite station">★</button>
+          </div>
+          <div class="st-platforms-strip" id="stationViewPlatforms"></div>
+        </div>
+
+        <div class="station-tabs">
+          <button class="station-tab-btn active" id="stTabDepartures" data-tab="departures">NEXT TRAINS</button>
+          <button class="station-tab-btn" id="stTabPlatforms" data-tab="platforms">PLATFORM GUIDE</button>
+        </div>
+
+        <!-- Next Trains list -->
+        <div id="stationDeparturesList" class="trains-list"></div>
+
+        <!-- Platform Guide list -->
+        <div id="stationPlatformsList" class="platform-guide-list" style="display: none;"></div>
+      </section>
+
+      <!-- ================= 5. FAVOURITES VIEW ================= -->
+      <section class="view-panel" id="favouritesView">
+        <div class="fav-container">
+          
+          <div class="fav-section">
+            <div class="section-label">
+              <span>Saved Commute Routes</span>
+              <button class="time-chip" id="btnAddFavRoute">+ Add Current</button>
+            </div>
+            <div id="favRoutesList" class="quick-commute-list">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <div class="fav-section">
+            <div class="section-label">
+              <span>Favourite Stations</span>
+            </div>
+            <div id="favStationsGrid" class="fav-stations-grid">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= 6. MORE / SETTINGS VIEW ================= -->
+      <section class="view-panel" id="moreView">
+        <div class="more-container">
+          
+          <div class="settings-card">
+            <div class="settings-item" id="pwaInstallRow">
+              <div>
+                <div class="settings-item-title">Install Transit Saathi (PWA)</div>
+                <div class="settings-item-desc">Add to Home Screen for 1-tap offline commute</div>
+              </div>
+              <button class="time-chip" id="btnInstallPwa">Install</button>
+            </div>
+
+            <div class="settings-item" id="btnOpenPlatformDirectory">
+              <div>
+                <div class="settings-item-title">Major Station Platform Guide</div>
+                <div class="settings-item-desc">Dadar, Kurla, CSMT, Thane, Andheri, Borivali PF layouts</div>
+              </div>
+              <span style="color: var(--text-muted);">›</span>
+            </div>
+
+            <div class="settings-item" id="btnOpenFastSlowGuide">
+              <div>
+                <div class="settings-item-title">Fast vs Slow Train Stoppages</div>
+                <div class="settings-item-desc">Western & Central skip patterns guide</div>
+              </div>
+              <span style="color: var(--text-muted);">›</span>
+            </div>
+
+            <!-- Diagnostics Test Suite (Section 54) -->
+            <div class="settings-item" id="btnRunDiagnostics">
+              <div>
+                <div class="settings-item-title">Railway Network Diagnostics</div>
+                <div class="settings-item-desc">Automated verification suite (36 tests)</div>
+              </div>
+              <button class="time-chip" id="btnTestRun">Test</button>
+            </div>
+          </div>
+
+          <!-- Predictive Emergency / SOS (Section 36, 37, 38) -->
+          <div class="settings-card emergency-card" style="border-color: rgba(239, 68, 68, 0.4); background: linear-gradient(180deg, #1f1218 0%, var(--bg-card) 100%);">
+            <div style="padding: 14px 14px 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 800; font-size: 13.5px; color: #FCA5A5; display: flex; align-items: center; gap: 6px;">
+                  🚨 EMERGENCY ASSISTANCE
+                </span>
+                <span class="status-pill status-cancelled" style="font-size: 10px;">DIAL 112</span>
+              </div>
+              <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+                Slide below to transmit live railway coordinates & trajectory and call National Emergency Helpline.
+              </div>
+            </div>
+
+            <div class="sos-slider-container" id="sosSliderContainer" style="padding: 10px 14px 14px;">
+              <div class="sos-track" id="sosTrack" style="position: relative; height: 46px; background: #3b0d11; border-radius: 23px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #7f1d1d;">
+                <span class="sos-track-label" id="sosTrackLabel" style="font-size: 12px; font-weight: 700; color: #fca5a5; letter-spacing: 1px; user-select: none;">SLIDE TO SOS ❯❯❯</span>
+                <div class="sos-thumb" id="sosThumb" style="position: absolute; left: 3px; top: 3px; width: 40px; height: 40px; background: #ef4444; border-radius: 20px; display: flex; align-items: center; justify-content: center; cursor: grab; box-shadow: 0 2px 8px rgba(0,0,0,0.4); touch-action: none;">
+                  <span style="color: white; font-weight: 900; font-size: 13px;">SOS</span>
+                </div>
+              </div>
+              <div id="sosCountdownBanner" style="display: none; margin-top: 8px; text-align: center; background: #7f1d1d; padding: 8px; border-radius: var(--radius-sm);">
+                <div style="font-weight: 800; color: #ffffff; font-size: 13px;">CONNECTING TO 112 IN <span id="sosCountdownSeconds">3</span>s...</div>
+                <button id="btnAbortSos" style="margin-top: 4px; background: #ffffff; color: #991b1b; border: none; border-radius: 4px; padding: 4px 12px; font-size: 11px; font-weight: 800; cursor: pointer;">CANCEL EMERGENCY</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-item">
+              <div>
+                <div class="settings-item-title">Offline Cache Status</div>
+                <div class="settings-item-desc">Full suburban timetable & network map pre-cached</div>
+              </div>
+              <span class="status-pill status-ontime">Ready</span>
+            </div>
+
+            <div class="settings-item" id="btnClearCache">
+              <div>
+                <div class="settings-item-title">Refresh Timetables</div>
+                <div class="settings-item-desc">Update suburban local schedules cache</div>
+              </div>
+              <button class="time-chip">Sync</button>
+            </div>
+          </div>
+
+          <div class="app-branding-footer">
+            <div><strong>Transit Saathi</strong> v1.0.1</div>
+            <div>Your Mumbai Local Companion</div>
+            <div style="margin-top: 4px; font-size: 10px;">Exclusively designed for Mumbai Suburban Railway</div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ================= BOTTOM NAVIGATION ================= -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" data-target="homeView">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="nav-label">HOME</span>
+      </button>
+
+      <button class="nav-item" data-target="trainsView">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+            <path d="M4 11h16"></path>
+            <path d="M12 3v8"></path>
+            <path d="m8 19-2 3"></path>
+            <path d="m18 22-2-3"></path>
+            <circle cx="8" cy="15" r="1"></circle>
+            <circle cx="16" cy="15" r="1"></circle>
+          </svg>
+        </div>
+        <span class="nav-label">TRAINS</span>
+      </button>
+
+      <button class="nav-item" data-target="mapView">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+        </div>
+        <span class="nav-label">MAP</span>
+      </button>
+
+      <button class="nav-item" data-target="favouritesView">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="nav-label">FAVOURITES</span>
+      </button>
+
+      <button class="nav-item" data-target="moreView">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="1"></circle>
+            <circle cx="12" cy="5" r="1"></circle>
+            <circle cx="12" cy="19" r="1"></circle>
+          </svg>
+        </div>
+        <span class="nav-label">MORE</span>
+      </button>
+    </nav>
+
+    <!-- ================= STATION SEARCH / PICKER MODAL ================= -->
+    <div class="modal-overlay" id="stationPickerModal">
+      <div class="picker-sheet">
+        <div class="modal-handle-bar"></div>
+        <div class="picker-search-header">
+          <div class="search-input-wrapper">
+            <span class="search-input-icon">🔍</span>
+            <input type="text" id="stationSearchInput" class="station-search-input" placeholder="Search Mumbai station (e.g. Kurla, VT, Dadar)..." autocomplete="off" autocorrect="off">
+          </div>
+          <button class="modal-close-btn" id="closePickerBtn">&times;</button>
+        </div>
+
+        <div class="picker-line-tabs" id="pickerLineTabs">
+          <button class="line-tab-chip active" data-line="ALL">All Stations</button>
+          <button class="line-tab-chip" data-line="central">Central Line</button>
+          <button class="line-tab-chip" data-line="western">Western Line</button>
+          <button class="line-tab-chip" data-line="harbour">Harbour Line</button>
+          <button class="line-tab-chip" data-line="transharbour">Trans-Harbour</button>
+        </div>
+
+        <div class="picker-results-list" id="pickerResultsList">
+          <!-- Populated instantly by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TRAIN DETAIL & TIMELINE MODAL ================= -->
+    <div class="modal-overlay" id="trainDetailModal">
+      <div class="modal-sheet">
+        <div class="modal-handle-bar"></div>
+        
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="tdTrainId" style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);">CR-4021</span>
+            <span id="tdSpeedBadge" class="badge-fast">FAST</span>
+            <span id="tdLineBadge" class="line-badge badge-central">Central Line</span>
+          </div>
+          <button class="modal-close-btn" id="closeTrainDetailBtn">&times;</button>
+        </div>
+
+        <div class="train-detail-summary-card">
+          <div class="td-top-row">
+            <div>
+              <div class="td-dest-header" id="tdDestHeader">CSMT → Kalyan</div>
+              <div style="font-size: 11.5px; color: var(--text-secondary);" id="tdOrigDestSubtitle">Originating CSMT</div>
+            </div>
+            <div class="td-time-large" id="tdDepartureTime">08:42 PM</div>
+          </div>
+
+          <div class="td-stats-grid">
+            <div class="td-stat-item">
+              <span class="td-stat-val" id="tdDuration">42 min</span>
+              <span class="td-stat-lbl">Duration</span>
+            </div>
+            <div class="td-stat-item">
+              <span class="td-stat-val" id="tdStops">8 stops</span>
+              <span class="td-stat-lbl">Halts</span>
+            </div>
+            <div class="td-stat-item">
+              <span class="td-stat-val" id="tdPlatform">PF 4</span>
+              <span class="td-stat-lbl">Platform</span>
+            </div>
+            <div class="td-stat-item">
+              <span class="td-stat-val" id="tdStatus">ON TIME</span>
+              <span class="td-stat-lbl">Status</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Station Timeline -->
+        <div class="timeline-scroll-container">
+          <div class="timeline-list" id="trainTimelineList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= GENERIC INFO / PLATFORM DIRECTORY MODAL ================= -->
+    <div class="modal-overlay" id="infoDirectoryModal">
+      <div class="modal-sheet">
+        <div class="modal-handle-bar"></div>
+        <div class="modal-header">
+          <div style="font-weight: 800; font-size: 15px;" id="infoModalTitle">Suburban Railway Guide</div>
+          <button class="modal-close-btn" id="closeInfoModalBtn">&times;</button>
+        </div>
+        <div class="timeline-scroll-container" id="infoModalBody" style="padding: 14px;">
+          <!-- Content dynamically rendered -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="js/data.js"></script>
+  <script src="js/timetable.js"></script>
+  <script src="js/gps.js"></script>
+  <script src="js/crowd.js"></script>
+  <script src="js/trip-optimizer.js"></script>
+  <script src="js/sos.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/tests/suite.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

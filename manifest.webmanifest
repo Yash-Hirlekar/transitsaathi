@@ -1,0 +1,48 @@
+{
+  "name": "Transit Saathi - Your Mumbai Local Companion",
+  "short_name": "Transit Saathi",
+  "description": "Fast, commuter-first timetable, live routes, platform info, and schematic map for Mumbai suburban local trains.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#881337",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "navigation", "utilities"],
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Trains",
+      "short_name": "Search",
+      "description": "Quick train journey search",
+      "url": "./index.html#trains",
+      "icons": [{ "src": "./icons/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Suburban Route Map",
+      "short_name": "Map",
+      "description": "Mumbai local train schematic network map",
+      "url": "./index.html#map",
+      "icons": [{ "src": "./icons/icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Saved Routes",
+      "short_name": "Favourites",
+      "description": "Your starred daily commute routes",
+      "url": "./index.html#favourites",
+      "icons": [{ "src": "./icons/icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}
