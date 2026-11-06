@@ -102,11 +102,101 @@
       assert('Nearest station matching identifies Dadar', nearestDadar && nearestDadar.station.id === 'DADAR');
     }
 
-    // 6. SOS Emergency Engine (Section 36, 37, 38)
+    // 6. Geolocation Hook (useUserLocation)
+    if (typeof useUserLocation === 'function') {
+      const hookInstance = useUserLocation();
+      assert('useUserLocation hook returns expected interface',
+        typeof hookInstance.getState === 'function' &&
+        typeof hookInstance.requestLocation === 'function' &&
+        typeof hookInstance.unsubscribe === 'function'
+      );
+      const hookState = hookInstance.getState();
+      assert('useUserLocation state contains permission and location status',
+        hookState && typeof hookState.permissionStatus === 'string' && typeof hookState.hasLocation === 'boolean'
+      );
+      hookInstance.unsubscribe();
+    }
+
+    // 7. Location-Gated Train Crowding Workflow
+    if (typeof CrowdEngine !== 'undefined' && typeof CrowdEngine.submitTrainCrowdReport === 'function') {
+      const trainReport = CrowdEngine.submitTrainCrowdReport('WR-9021', 'GREEN_SEATS', {
+        latitude: 19.0180,
+        longitude: 72.8470,
+        accuracy: 10,
+        speedKmh: 45,
+        nearestStationId: 'DADAR'
+      });
+      assert('submitTrainCrowdReport binds train_id, density and GPS coordinates',
+        trainReport &&
+        trainReport.train_id === 'WR-9021' &&
+        trainReport.density === 'GREEN_SEATS' &&
+        trainReport.location &&
+        trainReport.location.coordinates[0] === 72.8470 &&
+        trainReport.context === 'TRAIN'
+      );
+
+      const retrievedReports = CrowdEngine.getTrainCrowdReports('WR-9021');
+      assert('getTrainCrowdReports filters by train_id', Array.isArray(retrievedReports) && retrievedReports.length >= 1);
+    }
+
+    // 8. Line Isolation Queries (WR, CR, HR, TH)
+    if (typeof TimetableEngine !== 'undefined' && typeof TimetableEngine.getLineIsolatedTrains === 'function') {
+      const wrTrains = TimetableEngine.getLineIsolatedTrains('western');
+      const crTrains = TimetableEngine.getLineIsolatedTrains('central');
+      const hrTrains = TimetableEngine.getLineIsolatedTrains('harbour');
+      const thTrains = TimetableEngine.getLineIsolatedTrains('transharbour');
+
+      assert('Line isolation WR returns non-empty train list', Array.isArray(wrTrains) && wrTrains.length > 0 && wrTrains.every(t => t.line === 'western'));
+      assert('Line isolation CR returns non-empty train list', Array.isArray(crTrains) && crTrains.length > 0 && crTrains.every(t => t.line === 'central'));
+      assert('Line isolation HR returns non-empty train list', Array.isArray(hrTrains) && hrTrains.length > 0 && hrTrains.every(t => t.line === 'harbour'));
+      assert('Line isolation TH returns non-empty train list', Array.isArray(thTrains) && thTrains.length > 0 && thTrains.every(t => t.line === 'transharbour'));
+    }
+
+    // 9. Outer Suburban Branch Station Completeness
+    const dahanuBranchStations = ['VAITARNA', 'SAPHALE', 'KELVE_ROAD', 'PALGHAR', 'UMROLI', 'BOISAR', 'VANGAON', 'DAHANU_ROAD'];
+    dahanuBranchStations.forEach(stId => {
+      assert(`Dahanu Branch station present in master dataset: ${stId}`, STATIONS_BY_ID[stId] !== undefined);
+      assert(`Dahanu Branch station present in Western corridor: ${stId}`, TimetableEngine.CORRIDORS.western.includes(stId));
+    });
+
+    const kasaraBranchStations = ['SHAHAD', 'AMBIVLI', 'TITWALA', 'KHADAVLI', 'VASIND', 'ASANGAON', 'ATGAON', 'THANSIT', 'KHARDI', 'UMBERMALI', 'KASARA'];
+    kasaraBranchStations.forEach(stId => {
+      assert(`Kasara Branch station present: ${stId}`, STATIONS_BY_ID[stId] !== undefined);
+    });
+
+    const khopoliBranchStations = ['VITHALWADI', 'ULHASNAGAR', 'AMBERNATH', 'BADLAPUR', 'VANGANI', 'SHELU', 'NERAL', 'BHIVPURI_ROAD', 'KARJAT', 'PALASDHARI', 'KELAVLI', 'DOLAVLI', 'LOWJEE', 'KHOPOLI'];
+    khopoliBranchStations.forEach(stId => {
+      assert(`Khopoli Branch station present: ${stId}`, STATIONS_BY_ID[stId] !== undefined);
+    });
+
+    // 10. SOS Emergency Engine & Relative Location Share
     if (typeof SOSEngine !== 'undefined') {
       const payload = SOSEngine.createEmergencyPayload();
       assert('SOS emergency payload conforms to 2dsphere schema', payload && payload.location && payload.location.type === 'Point' && Array.isArray(payload.location.coordinates));
       assert('SOS payload contains trajectory GeoJSON', payload.trajectoryGeoJSON && payload.trajectoryGeoJSON.type === 'LineString');
+
+      // Trusted Contact save and retrieve
+      SOSEngine.saveEmergencyContact({ name: 'Family', phone: '9876543210' });
+      const savedContact = SOSEngine.getEmergencyContact();
+      assert('Trusted contact stores and retrieves name and phone', savedContact && savedContact.name === 'Family' && savedContact.phone === '9876543210');
+
+      // Authority SOS dispatch
+      const dispatchResult = SOSEngine.dispatchAuthoritySOS('RPF_182');
+      assert('Authority dispatch formats payload with targeted helpline',
+        dispatchResult &&
+        dispatchResult.authority.number === '182' &&
+        dispatchResult.payload.authority === 'RPF_182' &&
+        dispatchResult.telUri === 'tel:182'
+      );
+
+      // Relative location sharing links
+      const shareLinks = SOSEngine.generateLocationShareLinks();
+      assert('Relative location sharing generates Google Maps URL and messaging links',
+        shareLinks &&
+        shareLinks.mapsUrl.startsWith('https://maps.google.com/?q=') &&
+        shareLinks.whatsappUrl.includes('wa.me') &&
+        shareLinks.smsUrl.startsWith('sms:9876543210?body=')
+      );
     }
 
     console.groupEnd();

@@ -37,17 +37,23 @@ const SchematicMap = (function() {
     RAM_MANDIR: { x: 128, y: 305, name: 'Ram Mandir', code: 'RMAR', line: 'western', isInterchange: false },
     GOREGAON: { x: 126, y: 280, name: 'Goregaon', code: 'GMN', line: 'junction', isInterchange: true },
     MALAD: { x: 124, y: 250, name: 'Malad', code: 'MDD', line: 'western', isInterchange: false },
-    KANDIVALI: { x: 122, y: 220, name: 'Kandivali', code: 'KND', line: 'western', isInterchange: false },
-    BORIVALI: { x: 120, y: 190, name: 'Borivali', code: 'BVI', line: 'western', isInterchange: true },
-    DAHISAR: { x: 118, y: 160, name: 'Dahisar', code: 'DIC', line: 'western', isInterchange: false },
-    MIRA_ROAD: { x: 116, y: 135, name: 'Mira Road', code: 'MIRA', line: 'western', isInterchange: false },
-    BHAYANDAR: { x: 114, y: 110, name: 'Bhayandar', code: 'BYR', line: 'western', isInterchange: true },
-    NAIGAON: { x: 112, y: 95, name: 'Naigaon', code: 'NIG', line: 'western', isInterchange: false },
-    VASAI_ROAD: { x: 110, y: 80, name: 'Vasai Road', code: 'BSR', line: 'western', isInterchange: true },
-    NALLASOPARA: { x: 107, y: 65, name: 'Nallasopara', code: 'NSP', line: 'western', isInterchange: false },
-    VIRAR: { x: 105, y: 50, name: 'Virar', code: 'VR', line: 'western', isInterchange: true },
-    PALGHAR: { x: 105, y: 35, name: 'Palghar', code: 'PLG', line: 'western', isInterchange: false },
-    DAHANU_ROAD: { x: 105, y: 20, name: 'Dahanu Road', code: 'DRD', line: 'western', isInterchange: false },
+    KANDIVALI: { x: 122, y: 238, name: 'Kandivali', code: 'KND', line: 'western', isInterchange: false },
+    BORIVALI: { x: 120, y: 220, name: 'Borivali', code: 'BVI', line: 'western', isInterchange: true },
+    DAHISAR: { x: 118, y: 202, name: 'Dahisar', code: 'DIC', line: 'western', isInterchange: false },
+    MIRA_ROAD: { x: 116, y: 184, name: 'Mira Road', code: 'MIRA', line: 'western', isInterchange: false },
+    BHAYANDAR: { x: 114, y: 166, name: 'Bhayandar', code: 'BYR', line: 'western', isInterchange: true },
+    NAIGAON: { x: 112, y: 152, name: 'Naigaon', code: 'NIG', line: 'western', isInterchange: false },
+    VASAI_ROAD: { x: 110, y: 138, name: 'Vasai Road', code: 'BSR', line: 'western', isInterchange: true },
+    NALLASOPARA: { x: 107, y: 125, name: 'Nallasopara', code: 'NSP', line: 'western', isInterchange: false },
+    VIRAR: { x: 105, y: 112, name: 'Virar', code: 'VR', line: 'western', isInterchange: true },
+    VAITARNA: { x: 105, y: 99, name: 'Vaitarna', code: 'VTN', line: 'western', isInterchange: false },
+    SAPHALE: { x: 105, y: 86, name: 'Saphale', code: 'SAH', line: 'western', isInterchange: false },
+    KELVE_ROAD: { x: 105, y: 73, name: 'Kelve Road', code: 'KLV', line: 'western', isInterchange: false },
+    PALGHAR: { x: 105, y: 60, name: 'Palghar', code: 'PLG', line: 'western', isInterchange: false },
+    UMROLI: { x: 105, y: 48, name: 'Umroli', code: 'UOI', line: 'western', isInterchange: false },
+    BOISAR: { x: 105, y: 36, name: 'Boisar', code: 'BOR', line: 'western', isInterchange: true },
+    VANGAON: { x: 105, y: 24, name: 'Vangaon', code: 'VGN', line: 'western', isInterchange: false },
+    DAHANU_ROAD: { x: 105, y: 12, name: 'Dahanu Road', code: 'DRD', line: 'western', isInterchange: true },
 
     // Central Main Line
     CSMT: { x: 235, y: 810, name: 'CSMT', code: 'CSMT', line: 'junction', isInterchange: true },
@@ -74,18 +80,35 @@ const SchematicMap = (function() {
     DIVA_JN: { x: 390, y: 230, name: 'Diva Jn', code: 'DIVA', line: 'central', isInterchange: true },
     KOPAR: { x: 398, y: 218, name: 'Kopar', code: 'KOPR', line: 'central', isInterchange: false },
     DOMBIVLI: { x: 405, y: 205, name: 'Dombivli', code: 'DI', line: 'central', isInterchange: false },
-    THAKURLI: { x: 412, y: 190, name: 'Thakurli', code: 'THK', line: 'central', isInterchange: false },
-    KALYAN: { x: 420, y: 175, name: 'Kalyan Junction', code: 'KYN', line: 'junction', isInterchange: true },
-    // Kalyan Kasara Branch
-    TITWALA: { x: 440, y: 135, name: 'Titwala', code: 'TLA', line: 'central', isInterchange: false },
-    ASANGAON: { x: 455, y: 95, name: 'Asangaon', code: 'ASO', line: 'central', isInterchange: false },
-    KASARA: { x: 470, y: 55, name: 'Kasara', code: 'KSRA', line: 'central', isInterchange: true },
-    // Kalyan Karjat Branch
-    AMBERNATH: { x: 445, y: 215, name: 'Ambernath', code: 'ABH', line: 'central', isInterchange: false },
-    BADLAPUR: { x: 460, y: 245, name: 'Badlapur', code: 'BUD', line: 'central', isInterchange: false },
-    NERAL: { x: 475, y: 275, name: 'Neral Jn', code: 'NRL', line: 'central', isInterchange: true },
-    KARJAT: { x: 485, y: 310, name: 'Karjat', code: 'KJT', line: 'central', isInterchange: true },
-    KHOPOLI: { x: 495, y: 345, name: 'Khopoli', code: 'KHPI', line: 'central', isInterchange: false },
+    THAKURLI: { x: 410, y: 192, name: 'Thakurli', code: 'THK', line: 'central', isInterchange: false },
+    KALYAN: { x: 415, y: 178, name: 'Kalyan Junction', code: 'KYN', line: 'junction', isInterchange: true },
+    // Central Main (Kasara Branch: Kalyan -> Kasara)
+    SHAHAD: { x: 423, y: 163, name: 'Shahad', code: 'SHAD', line: 'central', isInterchange: false },
+    AMBIVLI: { x: 431, y: 148, name: 'Ambivli', code: 'ABY', line: 'central', isInterchange: false },
+    TITWALA: { x: 439, y: 133, name: 'Titwala', code: 'TLA', line: 'central', isInterchange: false },
+    KHADAVLI: { x: 447, y: 118, name: 'Khadavli', code: 'KDV', line: 'central', isInterchange: false },
+    VASIND: { x: 455, y: 103, name: 'Vasind', code: 'VSD', line: 'central', isInterchange: false },
+    ASANGAON: { x: 463, y: 88, name: 'Asangaon', code: 'ASO', line: 'central', isInterchange: false },
+    ATGAON: { x: 471, y: 73, name: 'Atgaon', code: 'ATG', line: 'central', isInterchange: false },
+    THANSIT: { x: 479, y: 58, name: 'Thansit', code: 'THS', line: 'central', isInterchange: false },
+    KHARDI: { x: 487, y: 43, name: 'Khardi', code: 'KDI', line: 'central', isInterchange: false },
+    UMBERMALI: { x: 495, y: 28, name: 'Umbermali', code: 'UMB', line: 'central', isInterchange: false },
+    KASARA: { x: 503, y: 13, name: 'Kasara', code: 'KSRA', line: 'central', isInterchange: true },
+    // Central Main (Khopoli Branch: Kalyan -> Khopoli)
+    VITHALWADI: { x: 422, y: 196, name: 'Vithalwadi', code: 'VLDI', line: 'central', isInterchange: false },
+    ULHASNAGAR: { x: 429, y: 213, name: 'Ulhasnagar', code: 'ULNR', line: 'central', isInterchange: false },
+    AMBERNATH: { x: 436, y: 230, name: 'Ambernath', code: 'ABH', line: 'central', isInterchange: false },
+    BADLAPUR: { x: 443, y: 247, name: 'Badlapur', code: 'BUD', line: 'central', isInterchange: false },
+    VANGANI: { x: 450, y: 264, name: 'Vangani', code: 'VGI', line: 'central', isInterchange: false },
+    SHELU: { x: 457, y: 281, name: 'Shelu', code: 'SHLU', line: 'central', isInterchange: false },
+    NERAL: { x: 464, y: 298, name: 'Neral Jn', code: 'NRL', line: 'central', isInterchange: true },
+    BHIVPURI_ROAD: { x: 471, y: 315, name: 'Bhivpuri Road', code: 'BVS', line: 'central', isInterchange: false },
+    KARJAT: { x: 478, y: 332, name: 'Karjat', code: 'KJT', line: 'central', isInterchange: true },
+    PALASDHARI: { x: 485, y: 349, name: 'Palasdari', code: 'PDI', line: 'central', isInterchange: false },
+    KELAVLI: { x: 492, y: 366, name: 'Kelavli', code: 'KLY', line: 'central', isInterchange: false },
+    DOLAVLI: { x: 498, y: 383, name: 'Dolavli', code: 'DLV', line: 'central', isInterchange: false },
+    LOWJEE: { x: 504, y: 400, name: 'Lowjee', code: 'LWJ', line: 'central', isInterchange: false },
+    KHOPOLI: { x: 510, y: 417, name: 'Khopoli', code: 'KHPI', line: 'central', isInterchange: true },
 
     // Harbour Line
     DOCKYARD_ROAD: { x: 250, y: 720, name: 'Dockyard Rd', code: 'DKRD', line: 'harbour', isInterchange: false },
@@ -123,19 +146,19 @@ const SchematicMap = (function() {
 
   // Build SVG Path Strings for Corridors
   function buildWesternPath() {
-    return 'M 130 810 L 130 690 L 140 600 L 165 570 L 145 510 L 140 480 L 132 360 L 126 280 L 120 190 L 114 110 L 105 50 L 105 20';
+    return 'M 130 810 L 130 690 L 140 600 L 165 570 L 145 510 L 140 480 L 132 360 L 126 280 L 120 220 L 114 166 L 110 138 L 105 112 L 105 12';
   }
 
   function buildCentralMainPath() {
-    return 'M 235 810 L 235 750 L 210 680 L 185 605 L 165 570 L 195 540 L 240 485 L 270 435 L 310 360 L 345 305 L 390 230 L 420 175';
+    return 'M 235 810 L 235 750 L 210 680 L 185 605 L 165 570 L 195 540 L 240 485 L 270 435 L 310 360 L 345 305 L 390 230 L 415 178';
   }
 
   function buildKasaraBranchPath() {
-    return 'M 420 175 L 440 135 L 455 95 L 470 55';
+    return 'M 415 178 L 423 163 L 439 133 L 463 88 L 487 43 L 503 13';
   }
 
   function buildKarjatBranchPath() {
-    return 'M 420 175 L 445 215 L 460 245 L 475 275 L 485 310 L 495 345';
+    return 'M 415 178 L 436 230 L 443 247 L 464 298 L 478 332 L 510 417';
   }
 
   function buildHarbourMainPath() {
@@ -170,12 +193,18 @@ const SchematicMap = (function() {
         <button class="map-btn" id="mapReset" title="Reset view" aria-label="Reset view">⟲</button>
       </div>
 
-      <div class="map-line-legend">
-        <button class="legend-pill active" data-line="ALL">All Lines</button>
-        <button class="legend-pill legend-wr" data-line="western">Western</button>
-        <button class="legend-pill legend-cr" data-line="central">Central</button>
-        <button class="legend-pill legend-hr" data-line="harbour">Harbour</button>
-        <button class="legend-pill legend-th" data-line="transharbour">Trans-Harbour</button>
+      <div class="map-line-legend" id="mapLegendContainer">
+        <button class="legend-toggle-btn" id="legendToggleBtn" aria-expanded="true" title="Toggle lines legend">
+          <span style="font-weight: 800; font-size: 10.5px; letter-spacing: 0.5px;">LINES</span>
+          <span class="legend-toggle-arrow" id="legendToggleArrow">▾</span>
+        </button>
+        <div class="legend-items-wrapper" id="legendItemsWrapper">
+          <button class="legend-pill active" data-line="ALL">All Lines</button>
+          <button class="legend-pill legend-cr" data-line="central"><span class="legend-dot dot-cr"></span>Central</button>
+          <button class="legend-pill legend-wr" data-line="western"><span class="legend-dot dot-wr"></span>Western</button>
+          <button class="legend-pill legend-hr" data-line="harbour"><span class="legend-dot dot-hr"></span>Harbour</button>
+          <button class="legend-pill legend-th" data-line="transharbour"><span class="legend-dot dot-th"></span>Trans-Harbour</button>
+        </div>
       </div>
 
       <div class="map-viewport-wrapper" id="mapViewport">
@@ -197,20 +226,20 @@ const SchematicMap = (function() {
           <g id="mapContentGroup" transform="translate(0, 0) scale(1)">
             <!-- TRACK LINES -->
             <g class="rail-corridors">
-              <!-- Central Main & Branches -->
-              <path class="rail-path path-cr" d="${buildCentralMainPath()}" stroke="#0284C7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-              <path class="rail-path path-cr-branch" d="${buildKasaraBranchPath()}" stroke="#0284C7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-              <path class="rail-path path-cr-branch" d="${buildKarjatBranchPath()}" stroke="#0284C7" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <!-- Central Main & Branches (Maroon/Red) -->
+              <path class="rail-path path-cr" d="${buildCentralMainPath()}" stroke="#881337" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <path class="rail-path path-cr-branch" d="${buildKasaraBranchPath()}" stroke="#881337" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <path class="rail-path path-cr-branch" d="${buildKarjatBranchPath()}" stroke="#881337" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
 
-              <!-- Western Line -->
-              <path class="rail-path path-wr" d="${buildWesternPath()}" stroke="#DC2626" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+              <!-- Western Line (Cyan/Blue) -->
+              <path class="rail-path path-wr" d="${buildWesternPath()}" stroke="#0284C7" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
 
-              <!-- Harbour Line -->
+              <!-- Harbour Line (Emerald Green) -->
               <path class="rail-path path-hr" d="${buildHarbourMainPath()}" stroke="#059669" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
               <!-- Harbour Western branch (dotted/distinct) -->
               <path class="rail-path path-hr-branch" d="${buildHarbourWesternBranchPath()}" stroke="#059669" stroke-width="5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
 
-              <!-- Trans-Harbour Line -->
+              <!-- Trans-Harbour Line (Yellow/Orange) -->
               <path class="rail-path path-th" d="${buildTransHarbourPath()}" stroke="#D97706" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
             </g>
 
@@ -375,6 +404,16 @@ const SchematicMap = (function() {
       if (stId && STATION_COORDS[stId]) {
         showStationPeek(stId);
       }
+    });
+
+    // Collapsible Legend Toggle
+    const legendToggleBtn = document.getElementById('legendToggleBtn');
+    const legendWrapper = document.getElementById('legendItemsWrapper');
+    const legendArrow = document.getElementById('legendToggleArrow');
+    legendToggleBtn?.addEventListener('click', () => {
+      const isCollapsed = legendWrapper?.classList.toggle('collapsed');
+      if (legendArrow) legendArrow.textContent = isCollapsed ? '▸' : '▾';
+      legendToggleBtn.setAttribute('aria-expanded', !isCollapsed);
     });
 
     // Line Filter Legend Pills

@@ -9,11 +9,13 @@
   --brand-primary-dark: #4C0519;
   --brand-accent: #F59E0B;      /* Mumbai local warning amber */
   
-  /* Corridors */
-  --wr-red: #DC2626;           /* Western Line Red */
-  --cr-blue: #0284C7;          /* Central Line Cobalt */
-  --hr-green: #059669;         /* Harbour Line Emerald */
-  --th-amber: #D97706;         /* Trans-Harbour Copper */
+  /* Corridors - System Status Tokens */
+  --wr-blue: #0284C7;          /* Western Line Cyan/Blue */
+  --cr-maroon: #881337;        /* Central Line Maroon/Red */
+  --wr-red: #0284C7;           /* Backwards-compatible token */
+  --cr-blue: #881337;          /* Backwards-compatible token */
+  --hr-green: #059669;         /* Harbour Line Emerald Green */
+  --th-amber: #D97706;         /* Trans-Harbour Copper / Yellow-Orange */
 
   /* Neutral Surface & Backgrounds */
   --bg-app: #0B0F19;           /* Ultra-clean deep dark background */
@@ -1252,10 +1254,37 @@ html, body {
   top: 10px;
   left: 10px;
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 85%;
+  z-index: 10;
+}
+
+.legend-toggle-btn {
+  align-self: flex-start;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 10.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.legend-items-wrapper {
+  display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  max-width: 80%;
-  z-index: 10;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.legend-items-wrapper.collapsed {
+  display: none;
 }
 
 .legend-pill {
@@ -1263,12 +1292,28 @@ html, body {
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 4px;
-  background-color: rgba(15, 23, 42, 0.85);
+  background-color: rgba(15, 23, 42, 0.88);
   border: 1px solid var(--border-strong);
   color: var(--text-secondary);
   cursor: pointer;
   backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
+
+.legend-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.dot-cr { background-color: #881337; }
+.legend-dot.dot-wr { background-color: #0284C7; }
+.legend-dot.dot-hr { background-color: #059669; }
+.legend-dot.dot-th { background-color: #D97706; }
 
 .legend-pill.active {
   background-color: var(--text-primary);
@@ -1276,10 +1321,10 @@ html, body {
   border-color: var(--text-primary);
 }
 
-.legend-wr { border-left: 3px solid var(--wr-red); }
-.legend-cr { border-left: 3px solid var(--cr-blue); }
-.legend-hr { border-left: 3px solid var(--hr-green); }
-.legend-th { border-left: 3px solid var(--th-amber); }
+.legend-cr { border-left: 3px solid #881337; }
+.legend-wr { border-left: 3px solid #0284C7; }
+.legend-hr { border-left: 3px solid #059669; }
+.legend-th { border-left: 3px solid #D97706; }
 
 .map-viewport-wrapper {
   flex: 1;
@@ -1958,4 +2003,175 @@ html, body {
   background: var(--bg-card-subtle);
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+/* ==========================================================================
+   PERSISTENT HEADER SOS & EMERGENCY DISPATCH STYLES
+   ========================================================================== */
+
+.header-sos-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+  color: #FFFFFF;
+  border: 1px solid #EF4444;
+  border-radius: var(--radius-sm);
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.header-sos-btn:active {
+  transform: scale(0.95);
+}
+
+.header-sos-btn .sos-icon {
+  font-size: 12px;
+}
+
+/* Location-Gated Train Crowding Card */
+.train-crowd-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+/* SOS Modal & Authority Cards */
+.sos-location-card {
+  background: rgba(127, 29, 29, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.sos-section-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.authority-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.authority-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.authority-card:active {
+  background: var(--bg-card-hover);
+  border-color: #EF4444;
+}
+
+.auth-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.auth-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.auth-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.auth-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.auth-number-badge {
+  font-size: 13px;
+  font-weight: 900;
+  font-family: var(--font-mono);
+  background: rgba(239, 68, 68, 0.15);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.trusted-share-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.share-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.share-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s ease;
+}
+
+.share-btn:active {
+  opacity: 0.85;
+}
+
+.share-whatsapp {
+  background: #14532D;
+  color: #DCFCE7;
+  border: 1px solid #22C55E;
+}
+
+.share-sms {
+  background: #1E3A8A;
+  color: #DBEAFE;
+  border: 1px solid #3B82F6;
+}
+
+.trusted-contact-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px;
 }

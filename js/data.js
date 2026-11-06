@@ -1,14 +1,89 @@
 // Transit Saathi - Official Mumbai Suburban Railway Database
 // Exclusively for Mumbai suburban local trains: Central, Western, Harbour, Trans-Harbour
 
+/**
+ * Phase 2 Official Railway API Typed Models
+ * @typedef {Object} IStation
+ * @property {string} id - Station identifier enum key (e.g., 'DADAR', 'KURLA')
+ * @property {string} code - Official Indian Railways telegraphic code (e.g., 'DR', 'CLA')
+ * @property {string} name - Canonical public station display name
+ * @property {string[]} aliases - Commuter search aliases and common colloquial names
+ * @property {string[]} lines - Operating suburban lines ['central', 'western', 'harbour', 'transharbour']
+ * @property {boolean} isInterchange - Whether interchange between lines/corridors is possible
+ * @property {string[]} [interchangeLines] - List of connected suburban/metro corridors
+ * @property {string[]} platforms - Ordered physical platform designations
+ * @property {number} [lat] - Geographic latitude (WGS 84)
+ * @property {number} [lon] - Geographic longitude (WGS 84)
+ * @property {number} [orderWestern] - Sequential index on Western corridor
+ * @property {number} [orderCentral] - Sequential index on Central corridor
+ * @property {number} [orderHarbour] - Sequential index on Harbour corridor
+ * @property {boolean} [popular] - Frequently queried suburban commuter terminal
+ */
+
+/**
+ * @typedef {Object} ITrain
+ * @property {string} id - Unique operational rake run identifier (e.g. 'CR-4021', 'WR-9011')
+ * @property {string} line - Operational line key ('central', 'western', 'harbour', 'transharbour')
+ * @property {string} lineName - Full line display name
+ * @property {string} type - Service classification ('FAST' | 'SLOW')
+ * @property {boolean} isFast - Fast/Skip-stop indicator flag
+ * @property {string} departureTime - HH:MM AM/PM 12-hour formatted departure at origin
+ * @property {number} rawDepartureMinutes - Minutes from midnight IST (0 - 1439)
+ * @property {string} originId - Origin station identifier
+ * @property {string} originName - Origin station name
+ * @property {string} originCode - Origin station Indian Railways code
+ * @property {string} destinationId - Terminus station identifier
+ * @property {string} destinationName - Terminus station name
+ * @property {string} destinationCode - Terminus station Indian Railways code
+ * @property {number} haltsCount - Number of intermediate stops
+ * @property {Array<{stationId: string, stationName: string, time: string, rawMinutes: number, platform: string, isHalt: boolean}>} stops - Halt trajectory schedule
+ * @property {string} platform - Assigned departure platform at user's boarding station
+ * @property {string} status - Service status ('ON TIME' | 'DELAYED 3m' | 'DELAYED 5m')
+ */
+
+/**
+ * @typedef {Object} ICrowdReport
+ * @property {string} _id - Unique submission identifier
+ * @property {string} train_id - Assigned operational train run ID (e.g., 'CR-4021')
+ * @property {string} density - Density rating ('GREEN_SEATS' | 'YELLOW_STAND' | 'RED_CRUSH')
+ * @property {number} timestamp - Epoch timestamp in milliseconds
+ * @property {{type: 'Point', coordinates: [number, number]}} location - GeoJSON [longitude, latitude]
+ * @property {number|null} accuracy - GPS accuracy radius in meters
+ * @property {number} speed_kmh - Commuter ground velocity in km/h
+ * @property {string} [direction] - Train progression ('UP' | 'DOWN' | 'UNKNOWN')
+ * @property {string} stationId - Nearest suburban station identifier
+ * @property {string} [corridorId] - Matched corridor key
+ * @property {string} context - 'TRAIN' | 'PLATFORM'
+ * @property {boolean} is_synced - Cloud backend synchronisation status
+ */
+
+/**
+ * @typedef {Object} ISosPayload
+ * @property {string} _id - Unique emergency session record identifier
+ * @property {number} timestamp - Incident trigger epoch in milliseconds
+ * @property {string} user_session - Active commuter session token
+ * @property {string} [authority] - Targeted dispatch service ('RPF_182' | 'HELPLINE_139' | 'GRP_1512' | 'POLICE_112')
+ * @property {{type: 'Point', coordinates: [number, number]}} location - GeoJSON [longitude, latitude]
+ * @property {number|null} accuracy - GPS location accuracy in meters
+ * @property {number} speed_kmh - Ground velocity at incident trigger
+ * @property {number|null} heading - Compass travel angle
+ * @property {string} nearestStationId - Last detected railway station ID
+ * @property {string} [nearestStationName] - Last detected railway station display name
+ * @property {string} corridorId - Active railway corridor identifier
+ * @property {string} direction - Trajectory direction ('UP' | 'DOWN' | 'UNKNOWN')
+ * @property {{id: string, name: string}|null} [predictedNextStation] - Next approach station
+ * @property {{type: 'LineString', coordinates: Array<[number, number]>}} trajectoryGeoJSON - Breadcrumb route
+ * @property {boolean} resolved - Emergency resolution flag
+ */
+
 const MUMBAI_RAIL_LINES = {
   central: {
     id: 'central',
     name: 'Central Line',
     shortName: 'Central',
-    color: '#0284C7', // Vivid crisp railway cobalt
-    badgeColor: '#0369A1',
-    lightBg: '#E0F2FE',
+    color: '#881337', // Indian Railways deep maroon/red
+    badgeColor: '#701A28',
+    lightBg: '#FFE4E6',
     textColor: '#FFFFFF',
     terminals: ['CSMT', 'Dadar', 'Kurla', 'Thane', 'Kalyan', 'Titwala', 'Asangaon', 'Kasara', 'Badlapur', 'Karjat', 'Khopoli']
   },
@@ -16,11 +91,11 @@ const MUMBAI_RAIL_LINES = {
     id: 'western',
     name: 'Western Line',
     shortName: 'Western',
-    color: '#DC2626', // Western red
-    badgeColor: '#B91C1C',
-    lightBg: '#FEE2E2',
+    color: '#0284C7', // Western Line vibrant cyan/cobalt blue
+    badgeColor: '#0369A1',
+    lightBg: '#E0F2FE',
     textColor: '#FFFFFF',
-    terminals: ['Churchgate', 'Mumbai Central', 'Dadar', 'Bandra', 'Andheri', 'Borivali', 'Bhayandar', 'Vasai Road', 'Virar', 'Dahanu Road']
+    terminals: ['Churchgate', 'Mumbai Central', 'Dadar', 'Bandra', 'Andheri', 'Borivali', 'Bhayandar', 'Vasai Road', 'Virar', 'Palghar', 'Boisar', 'Dahanu Road']
   },
   harbour: {
     id: 'harbour',
@@ -36,7 +111,7 @@ const MUMBAI_RAIL_LINES = {
     id: 'transharbour',
     name: 'Trans-Harbour Line',
     shortName: 'Trans-Harbour',
-    color: '#D97706', // Copper amber
+    color: '#D97706', // Copper amber / yellow-orange
     badgeColor: '#B45309',
     lightBg: '#FEF3C7',
     textColor: '#FFFFFF',
@@ -51,7 +126,7 @@ const FAST_STOPS_CENTRAL = [
 ];
 
 const FAST_STOPS_WESTERN = [
-  'CHURCHGATE', 'MUMBAI_CENTRAL', 'DADAR', 'BANDRA', 'ANDHERI', 'BORIVALI', 'BHAYANDAR', 'VASAI_ROAD', 'VIRAR', 'PALGHAR', 'DAHANU_ROAD'
+  'CHURCHGATE', 'MUMBAI_CENTRAL', 'DADAR', 'BANDRA', 'ANDHERI', 'BORIVALI', 'BHAYANDAR', 'VASAI_ROAD', 'VIRAR', 'PALGHAR', 'BOISAR', 'DAHANU_ROAD'
 ];
 
 // Complete Mumbai Suburban Stations
@@ -486,6 +561,48 @@ const MUMBAI_STATIONS = [
     popular: true
   },
   {
+    id: 'VAITARNA',
+    code: 'VTN',
+    name: 'Vaitarna',
+    aliases: ['VTN', 'Vaitarana'],
+    lines: ['western'],
+    isInterchange: false,
+    interchangeLines: [],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    lat: 19.5103,
+    lon: 72.8532,
+    orderWestern: 30,
+    popular: false
+  },
+  {
+    id: 'SAPHALE',
+    code: 'SAH',
+    name: 'Saphale',
+    aliases: ['SAH', 'Safale'],
+    lines: ['western'],
+    isInterchange: false,
+    interchangeLines: [],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    lat: 19.5786,
+    lon: 72.8228,
+    orderWestern: 31,
+    popular: false
+  },
+  {
+    id: 'KELVE_ROAD',
+    code: 'KLV',
+    name: 'Kelve Road',
+    aliases: ['KLV', 'Kelwa Road', 'Kelwe'],
+    lines: ['western'],
+    isInterchange: false,
+    interchangeLines: [],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    lat: 19.6247,
+    lon: 72.7951,
+    orderWestern: 32,
+    popular: false
+  },
+  {
     id: 'PALGHAR',
     code: 'PLG',
     name: 'Palghar',
@@ -493,10 +610,52 @@ const MUMBAI_STATIONS = [
     lines: ['western'],
     isInterchange: false,
     interchangeLines: [],
-    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)', 'PF 3 (Loop)'],
     lat: 19.6967,
     lon: 72.7655,
-    orderWestern: 30,
+    orderWestern: 33,
+    popular: true
+  },
+  {
+    id: 'UMROLI',
+    code: 'UOI',
+    name: 'Umroli',
+    aliases: ['UOI', 'Umaroli'],
+    lines: ['western'],
+    isInterchange: false,
+    interchangeLines: [],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    lat: 19.7423,
+    lon: 72.7489,
+    orderWestern: 34,
+    popular: false
+  },
+  {
+    id: 'BOISAR',
+    code: 'BOR',
+    name: 'Boisar',
+    aliases: ['BOR', 'Tarapur MIDC', 'Tarapur'],
+    lines: ['western'],
+    isInterchange: true,
+    interchangeLines: ['Tarapur Industrial Suburban Terminus'],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)', 'PF 3 (Loop)'],
+    lat: 19.8021,
+    lon: 72.7534,
+    orderWestern: 35,
+    popular: true
+  },
+  {
+    id: 'VANGAON',
+    code: 'VGN',
+    name: 'Vangaon',
+    aliases: ['VGN'],
+    lines: ['western'],
+    isInterchange: false,
+    interchangeLines: [],
+    platforms: ['PF 1 (Down)', 'PF 2 (Up)'],
+    lat: 19.8824,
+    lon: 72.7542,
+    orderWestern: 36,
     popular: false
   },
   {
@@ -510,7 +669,7 @@ const MUMBAI_STATIONS = [
     platforms: ['PF 1 (Down)', 'PF 2 (Up Terminus)', 'PF 3 (Up)'],
     lat: 19.9723,
     lon: 72.7323,
-    orderWestern: 31,
+    orderWestern: 37,
     popular: true
   },
 

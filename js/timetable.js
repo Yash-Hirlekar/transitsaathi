@@ -58,7 +58,9 @@ const TimetableEngine = (function() {
       'MAHIM_JN', 'BANDRA', 'KHAR_ROAD', 'SANTACRUZ', 'VILE_PARLE',
       'ANDHERI', 'JOGESHWARI', 'RAM_MANDIR', 'GOREGAON', 'MALAD',
       'KANDIVALI', 'BORIVALI', 'DAHISAR', 'MIRA_ROAD', 'BHAYANDAR',
-      'NAIGAON', 'VASAI_ROAD', 'NALLASOPARA', 'VIRAR', 'PALGHAR', 'DAHANU_ROAD'
+      'NAIGAON', 'VASAI_ROAD', 'NALLASOPARA', 'VIRAR', 'VAITARNA',
+      'SAPHALE', 'KELVE_ROAD', 'PALGHAR', 'UMROLI', 'BOISAR',
+      'VANGAON', 'DAHANU_ROAD'
     ],
     central_main: [
       'CSMT', 'MASJID', 'SANDHURST_ROAD', 'BYCULLA', 'CHINCHPOKLI',
@@ -677,6 +679,77 @@ const TimetableEngine = (function() {
     return unique.slice(0, 30);
   }
 
+  // Query isolated train data array for a specific suburban rail line
+  function getLineIsolatedTrains(lineKey, baseMinutes = null) {
+    const curMin = baseMinutes !== null ? baseMinutes : getMumbaiCurrentMinutes();
+    const normalized = (lineKey || '').toLowerCase();
+    const lineCorridorKey = (normalized === 'wr' ? 'western' : (normalized === 'cr' ? 'central' : (normalized === 'hr' ? 'harbour' : (normalized === 'th' ? 'transharbour' : normalized))));
+    
+    let keyCorridorPairs = [];
+    if (lineCorridorKey === 'central') {
+      keyCorridorPairs = [
+        { from: 'CSMT', to: 'KALYAN' },
+        { from: 'CSMT', to: 'KASARA' },
+        { from: 'CSMT', to: 'KHOPOLI' },
+        { from: 'KALYAN', to: 'CSMT' },
+        { from: 'KASARA', to: 'CSMT' },
+        { from: 'KHOPOLI', to: 'CSMT' },
+        { from: 'DADAR', to: 'THANE' }
+      ];
+    } else if (lineCorridorKey === 'western') {
+      keyCorridorPairs = [
+        { from: 'CHURCHGATE', to: 'VIRAR' },
+        { from: 'CHURCHGATE', to: 'DAHANU_ROAD' },
+        { from: 'CHURCHGATE', to: 'BORIVALI' },
+        { from: 'VIRAR', to: 'CHURCHGATE' },
+        { from: 'DAHANU_ROAD', to: 'CHURCHGATE' },
+        { from: 'BORIVALI', to: 'CHURCHGATE' },
+        { from: 'DADAR', to: 'BORIVALI' }
+      ];
+    } else if (lineCorridorKey === 'harbour') {
+      keyCorridorPairs = [
+        { from: 'CSMT', to: 'PANVEL' },
+        { from: 'CSMT', to: 'GOREGAON' },
+        { from: 'CSMT', to: 'VASHI' },
+        { from: 'PANVEL', to: 'CSMT' },
+        { from: 'GOREGAON', to: 'CSMT' },
+        { from: 'VASHI', to: 'CSMT' }
+      ];
+    } else if (lineCorridorKey === 'transharbour') {
+      keyCorridorPairs = [
+        { from: 'THANE', to: 'PANVEL' },
+        { from: 'THANE', to: 'VASHI' },
+        { from: 'PANVEL', to: 'THANE' },
+        { from: 'VASHI', to: 'THANE' }
+      ];
+    } else {
+      return [];
+    }
+
+    const trains = [];
+    keyCorridorPairs.forEach(pair => {
+      const lineInfo = findDirectLine(pair.from, pair.to);
+      if (lineInfo) {
+        const batch = generateDirectTrains(pair.from, pair.to, lineInfo, curMin, 8);
+        trains.push(...batch);
+      }
+    });
+
+    // Deduplicate by train departure time and destination
+    const seen = new Set();
+    const isolated = [];
+    trains.forEach(t => {
+      const key = `${t.id}_${t.departureTime}_${t.destinationId}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        isolated.push(t);
+      }
+    });
+
+    isolated.sort((a, b) => a.rawDepartureMinutes - b.rawDepartureMinutes);
+    return isolated.slice(0, 40);
+  }
+
   // Network graph instance built from master corridors
   const networkGraph = (typeof buildNetworkGraph === 'function' && typeof STATIONS_BY_ID !== 'undefined')
     ? buildNetworkGraph(CORRIDORS, STATIONS_BY_ID)
@@ -685,6 +758,7 @@ const TimetableEngine = (function() {
   return {
     findTrains,
     getStationDepartures,
+    getLineIsolatedTrains,
     minutesToTimeStr,
     timeStrToMinutes,
     getMumbaiCurrentMinutes,

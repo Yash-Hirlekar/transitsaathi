@@ -48,6 +48,7 @@
     setupStationPicker();
     setupTrainResultsView();
     setupTrainDetailModal();
+    setupEmergencySOSModal();
     setupStationView();
     setupFavouritesView();
     setupMoreView();
@@ -55,6 +56,11 @@
 
     updateHomeStationDisplays();
     renderPopularCommutes();
+
+    // Start background location tracking if permitted
+    if (typeof useUserLocation === 'function') {
+      useUserLocation(() => {});
+    }
   }
 
   // Load / Save persistent user data in LocalStorage
@@ -591,22 +597,60 @@
 
   function filterRenderedTrains() {
     const container = document.getElementById('trainResultsContainer');
-    if (!container || !currentLoadedJourneyResult || currentLoadedJourneyResult.type !== 'DIRECT') return;
+    if (!container) return;
 
-    let trains = currentLoadedJourneyResult.trains || [];
+    let trains = [];
+    const fromTitle = document.getElementById('resultsFromTitle');
+    const toTitle = document.getElementById('resultsToTitle');
+
+    if (AppState.currentLineFilter === 'ALL') {
+      const fromSt = STATIONS_BY_ID[AppState.fromStationId];
+      const toSt = STATIONS_BY_ID[AppState.toStationId];
+      if (fromTitle) fromTitle.textContent = fromSt ? fromSt.name : AppState.fromStationId;
+      if (toTitle) toTitle.textContent = toSt ? toSt.name : AppState.toStationId;
+
+      if (currentLoadedJourneyResult && currentLoadedJourneyResult.type === 'DIRECT') {
+        trains = [...(currentLoadedJourneyResult.trains || [])];
+      } else {
+        trains = [
+          ...(typeof TimetableEngine !== 'undefined' ? TimetableEngine.getLineIsolatedTrains('central') : []),
+          ...(typeof TimetableEngine !== 'undefined' ? TimetableEngine.getLineIsolatedTrains('western') : [])
+        ].sort((a, b) => a.rawDepartureMinutes - b.rawDepartureMinutes);
+      }
+    } else {
+      const lineKey = AppState.currentLineFilter;
+      const lineTitles = {
+        central: { from: 'CSMT', to: 'Kalyan / Kasara / Khopoli' },
+        western: { from: 'Churchgate', to: 'Virar / Dahanu Road' },
+        harbour: { from: 'CSMT', to: 'Panvel / Goregaon' },
+        transharbour: { from: 'Thane', to: 'Panvel / Vashi' }
+      };
+
+      if (lineTitles[lineKey]) {
+        if (fromTitle) fromTitle.textContent = lineTitles[lineKey].from;
+        if (toTitle) toTitle.textContent = lineTitles[lineKey].to;
+      }
+
+      const directMatches = (currentLoadedJourneyResult && currentLoadedJourneyResult.type === 'DIRECT')
+        ? (currentLoadedJourneyResult.trains || []).filter(t => t.line === lineKey)
+        : [];
+
+      if (directMatches.length > 0) {
+        trains = directMatches;
+      } else if (typeof TimetableEngine !== 'undefined') {
+        trains = TimetableEngine.getLineIsolatedTrains(lineKey);
+      }
+    }
 
     if (AppState.currentSpeedFilter !== 'ALL') {
       trains = trains.filter(t => t.type === AppState.currentSpeedFilter);
-    }
-    if (AppState.currentLineFilter !== 'ALL') {
-      trains = trains.filter(t => t.line === AppState.currentLineFilter);
     }
 
     if (!trains.length) {
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🚉</div>
-          <div class="empty-title">No Trains Found For Selected Filter</div>
+          <div class="empty-title">No active trains found on this line</div>
           <div class="empty-subtitle">Try switching to "ALL" speed or line filter to view all upcoming services.</div>
         </div>
       `;
@@ -710,11 +754,75 @@
     });
   }
 
-  // Train Detail Modal with Vertical Timeline
+  // Train Detail Modal with Vertical Timeline and Location-Gated Crowd Reporting
   function setupTrainDetailModal() {
     document.getElementById('closeTrainDetailBtn')?.addEventListener('click', () => {
       document.getElementById('trainDetailModal')?.classList.remove('active');
     });
+
+    // Location-gated verification button
+    document.getElementById('btnEnableGpsCrowd')?.addEventListener('click', async () => {
+      const btn = document.getElementById('btnEnableGpsCrowd');
+      if (btn) btn.textContent = 'Acquiring GPS...';
+      try {
+        if (typeof useUserLocation === 'function') {
+          const loc = useUserLocation();
+          await loc.requestLocation();
+        } else if (typeof GPSEngine !== 'undefined') {
+          await GPSEngine.requestOneShot();
+        }
+      } catch (e) {
+        console.warn('GPS prompt error', e);
+      }
+      if (btn) btn.textContent = 'Enable Location & Verify';
+      if (AppState.selectedTrain) {
+        updateTrainCrowdReportingSection(AppState.selectedTrain);
+      }
+    });
+
+    // Crowd density buttons bound to specific active train
+    document.querySelectorAll('#trainCrowdBox .crowd-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!AppState.selectedTrain) return;
+        const density = btn.getAttribute('data-density');
+        const gps = (typeof GPSEngine !== 'undefined') ? GPSEngine.getState() : {};
+        if (typeof CrowdEngine !== 'undefined') {
+          CrowdEngine.submitTrainCrowdReport(AppState.selectedTrain.id, density, gps);
+        }
+
+        const notice = document.getElementById('crowdFeedbackNotice');
+        if (notice) {
+          const label = btn.querySelector('.crowd-btn-text')?.textContent || density;
+          notice.textContent = `✓ Recorded ${label} for ${AppState.selectedTrain.id}`;
+          notice.style.display = 'block';
+          setTimeout(() => { notice.style.display = 'none'; }, 4000);
+        }
+      });
+    });
+  }
+
+  function updateTrainCrowdReportingSection(train) {
+    const gatePrompt = document.getElementById('crowdLocationGatePrompt');
+    const controls = document.getElementById('crowdReportingControls');
+    const badge = document.getElementById('trainCrowdStationBadge');
+    const trainIdLabel = document.getElementById('crowdGateTrainId');
+    const notice = document.getElementById('crowdFeedbackNotice');
+
+    if (notice) notice.style.display = 'none';
+    if (trainIdLabel) trainIdLabel.textContent = train.id;
+
+    const gps = (typeof GPSEngine !== 'undefined') ? GPSEngine.getState() : {};
+    if (gps.hasLocation && gps.latitude != null) {
+      if (gatePrompt) gatePrompt.style.display = 'none';
+      if (controls) controls.style.display = 'block';
+      const stName = gps.nearestStationId && STATIONS_BY_ID[gps.nearestStationId] 
+        ? STATIONS_BY_ID[gps.nearestStationId].name 
+        : 'GPS Verified';
+      if (badge) badge.textContent = `📍 ${stName} · Verified`;
+    } else {
+      if (gatePrompt) gatePrompt.style.display = 'block';
+      if (controls) controls.style.display = 'none';
+    }
   }
 
   function openTrainDetail(train) {
@@ -741,6 +849,9 @@
     document.getElementById('tdPlatform').textContent = train.platform;
     document.getElementById('tdStatus').textContent = train.status.label;
     document.getElementById('tdStatus').style.color = train.status.code === 'ON_TIME' ? '#6EE7B7' : '#FDE047';
+
+    // Update location-gated train crowd reporting section
+    updateTrainCrowdReportingSection(train);
 
     // Render Vertical Timeline
     renderVerticalTimeline(train);
@@ -1098,6 +1209,118 @@
         alert('Cache refreshed.');
       }
     });
+  }
+
+  // Emergency SOS Modal & Trusted Contact Management
+  function setupEmergencySOSModal() {
+    const sosModal = document.getElementById('sosModal');
+    const headerSosBtn = document.getElementById('headerSosBtn');
+    const closeSosBtn = document.getElementById('closeSosModalBtn');
+    const btnOpenConfig = document.getElementById('btnOpenEmergencyConfig');
+    const btnSaveContact = document.getElementById('btnSaveTrustedContact');
+    const contactNameInput = document.getElementById('trustedContactName');
+    const contactPhoneInput = document.getElementById('trustedContactPhone');
+    const contactSubtitle = document.getElementById('moreViewContactSubtitle');
+
+    function updateContactDisplays() {
+      const contact = (typeof SOSEngine !== 'undefined') ? SOSEngine.getEmergencyContact() : null;
+      if (contact && contact.phone) {
+        if (contactNameInput) contactNameInput.value = contact.name || '';
+        if (contactPhoneInput) contactPhoneInput.value = contact.phone || '';
+        if (contactSubtitle) {
+          contactSubtitle.textContent = `Saved: ${contact.name ? contact.name + ' (' + contact.phone + ')' : contact.phone}`;
+        }
+        const statusText = document.getElementById('trustedContactStatusText');
+        if (statusText) {
+          statusText.textContent = `Dispatch automated emergency alert to ${contact.name ? contact.name : 'Trusted Contact'} (${contact.phone}):`;
+        }
+      } else {
+        if (contactSubtitle) {
+          contactSubtitle.textContent = 'Set phone number for 1-tap WhatsApp/SMS location dispatch';
+        }
+      }
+    }
+
+    function refreshSOSModalContent() {
+      const gps = (typeof GPSEngine !== 'undefined') ? GPSEngine.getState() : {};
+      const stEl = document.getElementById('sosCurrentStation');
+      const accEl = document.getElementById('sosGpsAccuracy');
+      const coordEl = document.getElementById('sosCoordinatesDisplay');
+
+      if (gps.hasLocation && gps.latitude != null && gps.longitude != null) {
+        const stName = gps.nearestStationId && STATIONS_BY_ID[gps.nearestStationId] 
+          ? STATIONS_BY_ID[gps.nearestStationId].name 
+          : 'Mumbai Suburban Area';
+        if (stEl) stEl.textContent = `Near ${stName}`;
+        if (accEl) accEl.textContent = `±${Math.round(gps.accuracy || 15)}m Accuracy`;
+        if (coordEl) coordEl.textContent = `Coordinates: ${gps.latitude.toFixed(4)}° N, ${gps.longitude.toFixed(4)}° E`;
+      } else {
+        if (stEl) stEl.textContent = 'GPS Active (Acquiring Satellites)';
+        if (accEl) accEl.textContent = 'Locating...';
+        if (coordEl) coordEl.textContent = 'Coordinates: 19.0657° N, 72.8794° E (Mumbai)';
+      }
+
+      updateContactDisplays();
+
+      // Refresh automated share links
+      if (typeof SOSEngine !== 'undefined') {
+        const links = SOSEngine.generateLocationShareLinks();
+        const waBtn = document.getElementById('btnShareSosWhatsapp');
+        const smsBtn = document.getElementById('btnShareSosSms');
+        if (waBtn) waBtn.href = links.whatsappUrl;
+        if (smsBtn) smsBtn.href = links.smsUrl;
+      }
+    }
+
+    function openSOS() {
+      refreshSOSModalContent();
+      sosModal?.classList.add('active');
+    }
+
+    headerSosBtn?.addEventListener('click', openSOS);
+    btnOpenConfig?.addEventListener('click', openSOS);
+
+    closeSosBtn?.addEventListener('click', () => {
+      sosModal?.classList.remove('active');
+    });
+
+    sosModal?.addEventListener('click', (e) => {
+      if (e.target === sosModal) {
+        sosModal.classList.remove('active');
+      }
+    });
+
+    // Authority dispatch click tracking & logging
+    document.querySelectorAll('.authority-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const authKey = card.getAttribute('data-authority');
+        if (typeof SOSEngine !== 'undefined') {
+          SOSEngine.dispatchAuthoritySOS(authKey);
+        }
+      });
+    });
+
+    // Save trusted contact
+    btnSaveContact?.addEventListener('click', () => {
+      const name = contactNameInput ? contactNameInput.value.trim() : '';
+      const phone = contactPhoneInput ? contactPhoneInput.value.trim() : '';
+      if (!phone) {
+        alert('Please enter a valid phone number');
+        return;
+      }
+      if (typeof SOSEngine !== 'undefined') {
+        SOSEngine.saveEmergencyContact({ name, phone });
+      }
+      const msg = document.getElementById('trustedContactSaveMsg');
+      if (msg) {
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+      }
+      refreshSOSModalContent();
+    });
+
+    // Initialize contact display on load
+    updateContactDisplays();
   }
 
   // Schematic Map Setup

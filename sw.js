@@ -1,5 +1,5 @@
 // Transit Saathi - Service Worker for 100% Offline Mumbai Local Timetable, Crowd & Map Access
-const CACHE_NAME = 'transit-saathi-v1.1.0';
+const CACHE_NAME = 'transit-saathi-v1.2.0';
 
 const STATIC_ASSETS = [
   './',

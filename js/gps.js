@@ -266,3 +266,89 @@ const GPSEngine = (function() {
   };
 })();
 
+/**
+ * Geolocation Hook / Service for mobile PWAs and responsive browsers
+ * Native mobile permissions contract:
+ * - Android: android.permission.ACCESS_FINE_LOCATION, android.permission.ACCESS_COARSE_LOCATION
+ * - iOS: NSLocationWhenInUseUsageDescription
+ * 
+ * Supports browser HTML5 Geolocation API with graceful permission queries, mobile wrappers, and fallback
+ * @param {Function} [callback] - Invoked on location change with state { latitude, longitude, accuracy, nearestStation, status, error }
+ * @param {Object} [options] - Configuration { highAccuracy: true, watch: true, fallbackStation: 'DADAR' }
+ * @returns {{ getState: Function, requestLocation: Function, unsubscribe: Function }}
+ */
+function useUserLocation(callback, options = {}) {
+  let permissionStatus = 'prompt';
+  if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
+    try {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        permissionStatus = result.state; // 'granted', 'prompt', 'denied'
+        result.onchange = () => {
+          permissionStatus = result.state;
+          if (typeof callback === 'function') {
+            callback(getStatusPayload());
+          }
+        };
+      }).catch(() => {
+        // Fallback for browsers not supporting geolocation permission query
+      });
+    } catch (e) {
+      // Ignored in non-browser testing
+    }
+  }
+
+  function getStatusPayload() {
+    const s = GPSEngine.getState();
+    const nearestSt = s.nearestStationId && typeof STATIONS_BY_ID !== 'undefined' 
+      ? STATIONS_BY_ID[s.nearestStationId] 
+      : null;
+    return {
+      hasLocation: s.hasLocation,
+      isTracking: s.isTracking,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      accuracy: s.accuracy,
+      speedKmh: s.speedKmh,
+      context: s.context,
+      nearestStationId: s.nearestStationId,
+      nearestStation: nearestSt,
+      nearestStationDistanceKm: s.nearestStationDistanceKm,
+      corridorId: s.currentCorridorId,
+      direction: s.direction,
+      permissionStatus: s.hasLocation ? 'granted' : permissionStatus,
+      error: s.error,
+      timestamp: s.lastUpdated ? s.lastUpdated.getTime() : Date.now()
+    };
+  }
+
+  let unsub = null;
+  if (typeof callback === 'function') {
+    unsub = GPSEngine.subscribe(() => {
+      callback(getStatusPayload());
+    });
+  }
+
+  if (options.watch !== false && typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+    GPSEngine.startTracking();
+  }
+
+  return {
+    getState: getStatusPayload,
+    requestLocation: async () => {
+      await GPSEngine.requestOneShot();
+      return getStatusPayload();
+    },
+    unsubscribe: () => {
+      if (typeof unsub === 'function') unsub();
+    }
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.useUserLocation = useUserLocation;
+  if (window.GPSEngine) window.GPSEngine.useUserLocation = useUserLocation;
+}
+if (typeof global !== 'undefined') {
+  global.useUserLocation = useUserLocation;
+}
+

@@ -371,10 +371,80 @@ const CrowdEngine = (function() {
     });
   }
 
+  // Submit location-gated real-time crowd report bound to a specific active train
+  function submitTrainCrowdReport(trainId, densityCode, locationPayload = null) {
+    if (!trainId) {
+      console.error('Cannot report crowd: missing train_id');
+      return null;
+    }
+    if (!DENSITY_META[densityCode]) {
+      console.error('Invalid density code:', densityCode);
+      return null;
+    }
+
+    const gpsState = locationPayload || ((typeof GPSEngine !== 'undefined') ? GPSEngine.getState() : {});
+    const lat = gpsState.latitude != null ? gpsState.latitude : (gpsState.lat != null ? gpsState.lat : 19.0657);
+    const lon = gpsState.longitude != null ? gpsState.longitude : (gpsState.lon != null ? gpsState.lon : 72.8794);
+    const accuracy = gpsState.accuracy || null;
+    const speedKmh = gpsState.speedKmh != null ? gpsState.speedKmh : 0;
+    const stationId = gpsState.nearestStationId || 'KURLA';
+    const corridorId = gpsState.currentCorridorId || 'central_main';
+    const direction = gpsState.direction || 'UNKNOWN';
+
+    const report = {
+      _id: 'rep_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      train_id: trainId,
+      density: densityCode,
+      timestamp: Date.now(),
+      location: {
+        type: 'Point',
+        coordinates: [lon, lat]
+      },
+      accuracy: accuracy,
+      speed_kmh: speedKmh,
+      direction: direction,
+      stationId: stationId,
+      corridorId: corridorId,
+      context: 'TRAIN',
+      is_synced: (typeof navigator !== 'undefined' ? navigator.onLine : true)
+    };
+
+    // Save locally
+    const allReports = getStoredReports();
+    allReports.unshift(report);
+    saveStoredReports(allReports);
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const queue = getOfflineQueue();
+      queue.push(report);
+      saveOfflineQueue(queue);
+    } else {
+      sendReportToBackend(report);
+    }
+
+    invalidateCache(corridorId, stationId);
+    notifySubscribers();
+
+    return report;
+  }
+
+  function getTrainCrowdReports(trainId) {
+    if (!trainId) return [];
+    return getStoredReports().filter(r => r.train_id === trainId);
+  }
+
+  function getLatestTrainCrowdReport(trainId) {
+    const reports = getTrainCrowdReports(trainId);
+    return reports.length ? reports[0] : null;
+  }
+
   return {
     DENSITY_ENUM,
     DENSITY_META,
     submitReport,
+    submitTrainCrowdReport,
+    getTrainCrowdReports,
+    getLatestTrainCrowdReport,
     syncOfflineQueue,
     getOfflineQueue,
     getStoredReports,
